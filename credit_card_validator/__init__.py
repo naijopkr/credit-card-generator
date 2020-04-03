@@ -1,7 +1,8 @@
+from random import randint
 import re
 
-def is_valid(card_number):
-    card_sum = 0
+def card_sum(card_number):
+    total_sum = 0
     if not re.search(r'^\d+$', card_number):
         raise ValueError('Invalid card number!')
 
@@ -12,11 +13,15 @@ def is_valid(card_number):
             if new_digit > 9:
                 new_digit = new_digit - 9
 
-            card_sum += new_digit
+            total_sum += new_digit
         else:
-            card_sum += int(card_number[i])
+            total_sum += int(card_number[i])
 
-    return card_sum % 10 == 0
+    return total_sum
+
+
+def is_valid(card_number):
+    return card_sum(card_number) % 10 == 0
 
 
 def get_card_type(card_number):
@@ -24,10 +29,19 @@ def get_card_type(card_number):
         raise ValueError('Invalid card number')
 
 
-def generate_credit_card():
-    pass
+# TODO: GENERATE BASED ON CARD TYPE
+def generate_credit_card(type = 'visa'):
+    card_number = '4'
+    for i in range(14):
+        card_number += str(randint(0, 9))
+
+    digits_sum = card_sum(card_number)
+
+    card_number += str(digits_sum % 10)
+
+    print(card_number)
+    print(is_valid(card_number))
 
 
 if __name__ == '__main__':
-    output = is_valid(input('Credit card number: '))
-    print(output)
+    generate_credit_card()
