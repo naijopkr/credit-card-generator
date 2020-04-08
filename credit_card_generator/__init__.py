@@ -1,5 +1,10 @@
 from random import randint
 import re
+import json
+import os
+
+json_path = os.path.join(os.path.dirname(__file__), 'lib/card_types.json')
+
 
 def card_sum(card_number):
     total_sum = 0
@@ -28,6 +33,49 @@ def get_card_type(card_number):
     if not is_valid(card_number):
         raise ValueError('Invalid card number')
 
+    with open(json_path) as cards_data:
+        card_types = json.load(cards_data)
+
+        card_flags = card_types.keys()
+        possible_cards = set(card_flags)
+        card_type_name = 'Not available'
+        for card_flag in card_flags:
+            print(f'Testing for: {card_flag}')
+            candidate = card_types[card_flag]
+
+            # Test length
+            if not len(card_number) in candidate['lengths']:
+                possible_cards.remove(card_flag)
+                continue
+
+            #Test patterns
+            has_pattern = False
+            for pattern in candidate['patterns']:
+                if (isinstance(pattern, list)):
+                    for num in range(pattern[0], pattern[1]):
+                        if re.match(str(num), card_number):
+                            has_pattern = True
+                            break
+
+                    if has_pattern:
+                        break
+                else:
+                    if re.match(str(pattern), card_number):
+                        has_pattern = True
+                        break
+
+            if has_pattern:
+                card_type_name = candidate['niceType']
+                break
+            else:
+                possible_cards.remove(card_flag)
+
+    return card_type_name
+
+
+def get_card_props(type):
+    pass
+
 
 # TODO: GENERATE BASED ON CARD TYPE
 def generate_credit_card(type = 'visa'):
@@ -37,11 +85,12 @@ def generate_credit_card(type = 'visa'):
 
     digits_sum = card_sum(card_number)
 
-    card_number += str(digits_sum % 10)
+    card_number += str((10 - digits_sum % 10) % 10)
 
-    print(card_number)
-    print(is_valid(card_number))
+    return card_number
 
 
 if __name__ == '__main__':
-    generate_credit_card()
+    card = generate_credit_card()
+    card_name = get_card_type(card)
+    print(card_name)

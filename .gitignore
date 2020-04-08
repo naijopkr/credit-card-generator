@@ -4,3 +4,4 @@ build/
 dist/
 .vscode/
 *.egg-info/
+.mypy_cache
