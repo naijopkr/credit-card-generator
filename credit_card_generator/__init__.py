@@ -3,7 +3,7 @@ import re
 import json
 import os
 
-json_path = os.path.join(os.path.dirname(__file__), 'lib/card_types.json')
+card_types_path = os.path.join(os.path.dirname(__file__), 'lib/card_types.json')
 
 
 def card_sum(card_number):
@@ -33,14 +33,13 @@ def get_card_type(card_number):
     if not is_valid(card_number):
         raise ValueError('Invalid card number')
 
-    with open(json_path) as cards_data:
+    with open(card_types_path) as cards_data:
         card_types = json.load(cards_data)
 
         card_flags = card_types.keys()
         possible_cards = set(card_flags)
         card_type_name = 'Not available'
         for card_flag in card_flags:
-            print(f'Testing for: {card_flag}')
             candidate = card_types[card_flag]
 
             # Test length
@@ -74,23 +73,51 @@ def get_card_type(card_number):
 
 
 def get_card_props(type):
-    pass
+    with open(card_types_path) as card_data:
+        card_types = json.load(card_data)
+        card_flag = card_types[type]
+        if not card_flag:
+            raise ValueError('Card not supported')
+
+        return {
+            'niceType': card_flag['niceType'],
+            'lengths': card_flag['lengths'],
+            'patterns': card_flag['patterns']
+        }
+
 
 
 # TODO: GENERATE BASED ON CARD TYPE
 def generate_credit_card(type = 'visa'):
-    card_number = '4'
-    for i in range(14):
+    card_props = get_card_props(type)
+
+    card_length = card_props['lengths'][0]
+    start_pattern = card_props['patterns'][0]
+    if isinstance(start_pattern, list):
+        start_pattern = start_pattern[0]
+
+    card_number = str(start_pattern)
+    missing_numbers = card_length - len(card_number) - 1
+
+    for i in range(missing_numbers):
         card_number += str(randint(0, 9))
 
     digits_sum = card_sum(card_number)
 
-    card_number += str((10 - digits_sum % 10) % 10)
+    if (len(card_number) % 2 == 0):
+        new_digit = (10 - digits_sum % 10) % 10
+        if new_digit % 2 == 0:
+            card_number += str(int(new_digit/2))
+        else:
+            card_number += str(int((new_digit + 9) / 2))
+    else:
+        card_number += str((10 - digits_sum % 10) % 10)
 
     return card_number
 
 
 if __name__ == '__main__':
-    card = generate_credit_card()
+    card = generate_credit_card('discover')
+    print(card)
     card_name = get_card_type(card)
     print(card_name)
