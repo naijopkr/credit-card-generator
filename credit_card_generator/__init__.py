@@ -72,10 +72,10 @@ def get_card_type(card_number):
     return card_type_name
 
 
-def get_card_props(type):
+def get_card_props(card_type):
     with open(card_types_path) as card_data:
         card_types = json.load(card_data)
-        card_flag = card_types[type]
+        card_flag = card_types[card_type]
         if not card_flag:
             raise ValueError('Card not supported')
 
@@ -86,10 +86,14 @@ def get_card_props(type):
         }
 
 
+def generate_credit_card(card_type = ''):
+    if card_type:
+        card_props = get_card_props(card_type)
+    else:
+        default_types = ['visa', 'mastercard', 'american-express']
+        random_type = randint(0, 2)
+        card_props = get_card_props(default_types[random_type])
 
-# TODO: GENERATE BASED ON CARD TYPE
-def generate_credit_card(type = 'visa'):
-    card_props = get_card_props(type)
 
     card_length = card_props['lengths'][0]
     start_pattern = card_props['patterns'][0]
@@ -114,10 +118,3 @@ def generate_credit_card(type = 'visa'):
         card_number += str((10 - digits_sum % 10) % 10)
 
     return card_number
-
-
-if __name__ == '__main__':
-    card = generate_credit_card('discover')
-    print(card)
-    card_name = get_card_type(card)
-    print(card_name)
